@@ -1,0 +1,77 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  role      Role     @default(USER)
+  createdAt DateTime @default(now())
+  
+  // Relations
+  hostedEvents Event[] @relation("HostedEvents")
+  tickets      Ticket[]
+}
+
+model Event {
+  id          String   @id @default(cuid())
+  title       String
+  description String
+  category    Category
+  location    String
+  date        DateTime
+  image       String?
+  price       Float    @default(0)
+  hostId      String
+  status      Status   @default(PENDING)
+  createdAt   DateTime @default(now())
+  
+  // Relations
+  host   User     @relation("HostedEvents", fields: [hostId], references: [id])
+  tickets Ticket[]
+}
+
+model Ticket {
+  id        String   @id @default(cuid())
+  userId    String
+  eventId   String
+  qrCode    String   @unique
+  createdAt DateTime @default(now())
+  
+  // Relations
+  user  User  @relation(fields: [userId], references: [id])
+  event Event @relation(fields: [eventId], references: [id])
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum Category {
+  MUSIC
+  BUSINESS
+  CULTURE
+  FAITH
+  FOOD
+  SPORTS
+  TECHNOLOGY
+  EDUCATION
+  ENTERTAINMENT
+  OTHER
+}
+
+enum Status {
+  PENDING
+  APPROVED
+  REJECTED
+} 
